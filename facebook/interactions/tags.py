@@ -8,8 +8,8 @@ from selenium.common.exceptions import NoSuchElementException
 import time
 import json
 
-usr = "nrine9956@gmail.com"
-pwd = "rubiginosar"
+usr = "saadprojet@gmail.com"
+pwd = "saadprojet123"
 chrome_options = webdriver.ChromeOptions()
 prefs = {"profile.default_content_setting_values.notifications": 2}
 chrome_options.add_experimental_option("prefs", prefs)

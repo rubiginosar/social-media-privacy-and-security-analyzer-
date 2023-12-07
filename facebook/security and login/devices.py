@@ -9,7 +9,7 @@ import time
 import json
 import re
 
-usr = "saadprojet6@gmail.com"
+usr = "saadprojet@gmail.com"
 pwd = "saadprojet123"
 
 chrome_options = webdriver.ChromeOptions()

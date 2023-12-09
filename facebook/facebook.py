@@ -9,21 +9,107 @@ from selenium.common.exceptions import NoSuchElementException
 import time
 import json
 import re
-from flask import Flask, render_template, request,redirect
+import os
+from flask import Flask, render_template, request,redirect, session
+from flask_mysqldb import MySQL
+import pymysql
 
 app = Flask(__name__)
 
+app.secret_key = os.urandom(24)
+
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_PASSWORD'] = 'pass_root'
+app.config['MYSQL_DB'] = 'projet'
+app.config['MYSQL_PORT'] = 3307 
+
+mysql = MySQL(app)
+#################definition des fonctions#################
+import bcrypt
+
+# Hash a password
+def hash_password(password):
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    return hashed_password
+
+# Verify a password
+def verify_password(input_password, hashed_password):
+    return bcrypt.checkpw(input_password.encode('utf-8'), hashed_password)
+
+# Example of hashing a password before storing it in the database
+password = "user_password"
+hashed_password = hash_password(password)
+
+def login_is_valid(username_or_email, password):
+    # This is where you would perform your actual validation logic
+    # For instance, querying your database to check if the credentials are valid
+    # Replace this logic with your own logic to validate the user
+
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM users WHERE username = %s OR email = %s", (username_or_email, username_or_email))
+    user = cur.fetchone()
+
+    if user and bcrypt.checkpw(password.encode('utf-8'), user[2].encode('utf-8')):
+        return True  # Valid credentials
+    else:
+        return False  # Invalid credentials
+
+#################definition des fonctions#################
 @app.route('/')
 def home():
     return render_template('projet.html')
 
-@app.route('/registration')
+# @app.route('/registration')
+# def registration():
+#     return render_template('registration.html')
+@app.route('/registration', methods=['GET', 'POST'])
 def registration():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+
+        # Check if the user exists
+        with mysql.connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+            user = cursor.fetchone()
+            if user and bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
+    # Password matches, log the user in
+                session['user'] = {'email': email}
+                return render_template('chose.html')  # Redirect to the dashboard after successful login
+            else:
+    # Invalid credentials
+                return "Invalid email or password. Please try again or register."
+
     return render_template('registration.html')
 
-@app.route('/register')
+
+
+# @app.route('/register')
+# def register():
+#     return render_template('register.html') 
+@app.route('/register', methods=['GET', 'POST'])
 def register():
-    return render_template('register.html') 
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        email = request.form['email']
+
+        # Hash the password before storing it in the database
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM users WHERE email = %s", (email,))
+        user = cur.fetchone()
+        if user:
+            # User already exists with the given email
+            return "User with this email already exists!"
+        else:
+            cur.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)", (username, email, hashed_password))
+            mysql.connection.commit()
+            cur.close()
+            session['user'] = {'email': email}
+            return render_template('chose.html')  # Redirect to login page after registration
+    return render_template('register.html')
 
 @app.route('/options')
 def options():
@@ -32,6 +118,8 @@ def options():
 @app.route('/Login')
 def Login():
     return render_template('Login.html') 
+
+
 
 @app.route('/chose')
 def chose():

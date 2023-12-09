@@ -1,60 +1,61 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Registration</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    </head>
-    <body>
-        <nav id="nav">
-            <div class="navbar">
-                <div class="logo">
-                    <i class="fa-solid fa-unlock-keyhole"></i> SəcurityChəck 
-                </div>
-                <div class="links">
+<head>
+    <title>Registration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <nav id="nav">
+        <div class="navbar">
+            <div class="logo">
+                <i class="fa-solid fa-unlock-keyhole"></i> SəcurityChəck 
+            </div>
+            <div class="links">
                 <a href="{{ url_for('home') }}">HOME</a>
                 <a href="{{ url_for('registration') }}">LOGIN</a>
-                </div>
             </div>
-        </nav>
-        <div>
-            <form onsubmit="submitForm()" class="form2">
-                <div class="box2">
-                    <h2>Register</h2>
-                    <div class="input">
-                        <span class="icon"><ion-icon name="person-outline"></ion-icon></span>
-                        <input type="text" id="user" placeholder="Username" required>
-                    </div>
-                    <div class="input">
-                        <span class="icon"><ion-icon name="mail-outline"></ion-icon></span>
-                        <input type="email" id="email" placeholder="Email" required>
-                    </div>
-                    <div class="input">
-                        <span class="icon"><ion-icon name="lock-closed-outline"></ion-icon></span>
-                        <input type="password" id="password" placeholder="Password" required>
-                    </div>
-                    <div class="rememberme2">
-                        <label><input type="checkbox">Agree to terms & conditions</label>
-                    </div>
-                    <button type="submit" class="btn2">Register</button>
-                </div>
-            </form>
-            <script>
-                function submitForm() {
-                    event.preventDefault();
-        
-                    email = document.getElementById("email").value;
-                    password = document.getElementById("password").value;
-                    user=document.getElementById("user").value;
-        
-                    if (email !== "" && password !== "" && user!=="") {
-                        window.location.href = "{{ url_for('registration') }}";
-                    } else {
-                        alert("Veuillez remplir tous les champs.");
-                    }
-                }
-            </script>
         </div>
+    </nav>
+    <div>
+        <form onsubmit="return submitForm(event)" class="form2" method="POST" action="{{ url_for('register') }}">
+            <div class="box2">
+                <h2>Register</h2>
+                <div class="input">
+                    <span class="icon"><ion-icon name="person-outline"></ion-icon></span>
+                    <input type="text" id="user" name="username" placeholder="Username" required>
+                </div>
+                <div class="input">
+                    <span class="icon"><ion-icon name="mail-outline"></ion-icon></span>
+                    <input type="email" id="email" name="email" placeholder="Email" required>
+                </div>
+                <div class="input">
+                    <span class="icon"><ion-icon name="lock-closed-outline"></ion-icon></span>
+                    <input type="password" id="password" name="password" placeholder="Password" required>
+                </div>
+                <div class="rememberme2">
+                    <label><input type="checkbox">Agree to terms & conditions</label>
+                </div>
+                <button type="submit" class="btn2">Register</button>
+            </div>
+        </form>
+    </div>
+    <script>
+        function submitForm(event) {
+            let email = document.getElementById("email").value;
+            let password = document.getElementById("password").value;
+            let user = document.getElementById("user").value;
+
+            if (email !== "" && password !== "" && user !== "") {
+                // Form will submit to the server's /register route defined in the 'action' attribute
+                return true;
+            } else {
+                alert("Please fill in all the fields.");
+                event.preventDefault(); // Prevents the form from submitting if validation fails
+                return false;
+            }
+        }
+    </script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    </body>
+</body>
 </html>

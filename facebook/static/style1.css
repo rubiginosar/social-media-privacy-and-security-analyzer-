@@ -1,0 +1,203 @@
+body{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-size: cover;
+    font-family: sans-serif;
+}
+.logo{
+    font-size: 24px;
+    font-weight: bold;
+    color: #009688;
+    font-family: sans-serif;
+    animation: floatImage 4s ease-in-out infinite;
+}
+@keyframes floatImage{
+    0%{
+        transform: translateY(0);
+    }
+    50%{
+        transform: translateY(-0.3rem);
+    }
+    100%{
+        transform: translateY(0);
+    }
+}
+.logo i{
+    color: #009688;
+}
+.navbar{
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    margin: 30px 120px 0px 120px;
+}
+.links{
+    font-size: 16px;
+    font-family: arial;
+    margin-top: 5px;
+    justify-content: space-between;
+}
+.navbar .links a{
+    text-decoration: none;
+    color: black;
+    margin: 0 30px;
+    transition: 0.4s ease-in-out;
+    position: relative;
+}
+.navbar .links a::after{
+    content: '';
+    height: 3px;
+    width: 0%;
+    background: #009688;
+    position: absolute;
+    left: 0;
+    bottom: -10px;
+    transition: 0.5s;
+}
+.navbar .links a:hover::after{
+    width: 100%;
+}
+.all{
+    display: flex;
+    min-height: 90vh;
+    justify-content: center;
+    align-items: center;
+}
+.box {
+    background-color: aliceblue;
+    border-radius: 25px;
+    width: 270px;
+    text-align: center;
+    position: relative;
+    margin-left: 30px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.4);
+}
+
+.icon {
+    position: relative;
+}
+
+.icon i {
+    font-size: 40px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 1;
+}
+
+.icon .span {
+    position: absolute;
+    height: 100%; 
+    width: 100%;
+    bottom: 0;
+    left: 0;
+    background-color: #009688;
+    border-radius: 25px 25px 0 25px;
+}
+.icon .span::before,
+.icon .span::after{
+    content: '';
+    right: 0;
+    bottom: -40px;
+    position: absolute;
+    height: 40px;
+    width: 40px;
+    background-color: #009688;
+
+}
+.icon .span::after{
+    border-radius: 0 25px 0 0;
+    background-color: aliceblue;
+}
+.box p {
+    font-size: 14px;
+    color: black;
+    opacity: .6;
+}
+
+.box button {
+    margin-bottom: 15px;
+    border: none;
+    font-size: 16px;
+    color: #fff;
+    padding: 8px 16px;
+    background-color: #009688;
+    border-radius: 6px;
+    transition: .3s ease;
+}
+.box a{
+    text-decoration: none;
+    color: white;
+}
+
+.box button:hover {
+    background: #00443d;
+    transform: scale(1.05);
+}
+.content{
+    padding: 15px;
+}
+.container{
+    max-width: 900px;
+    width: 25%;
+}
+.analyse{
+    display: flex;
+    min-height: 80vh;
+    justify-content: center;
+    align-items: center;
+}
+.analyse p{
+    width: 50%;
+    text-align: center;
+    line-height: 25px;
+    word-spacing: 1px;
+}
+.analyse a{
+    color: #009688;
+}
+.btn{
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    margin-top: -200px;
+}
+.btn{
+    text-align: center;
+}
+.btn a{
+    text-decoration: none;
+    color: white;
+}
+.btn button{
+    width: 200px;
+    padding: 15px 0;
+    font-size: 15px;
+    font-weight: bold;
+    color: black;
+    background-color: transparent;
+    border: 1.5px solid #009688;
+    margin: 20px 10px;
+    border-radius: 25px;
+    position: relative;
+    overflow: hidden;
+    animation: floatImage 4s ease-in-out infinite;
+}
+.btn span{
+    background: #009688;
+    height: 100%;
+    width: 0%;
+    border-radius: 25px;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: -1;
+    transition: .5s;
+}
+.btn button:hover span{
+    width: 100%;
+}
+.btn button:hover{
+    border: none;
+}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>LOGIN</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    </head>
+    <body>
+        <nav id="nav">
+            <div class="navbar">
+                <div class="logo">
+                    <i class="fa-solid fa-unlock-keyhole"></i> SəcurityChəck 
+                </div>
+                <div class="links">
+                <a href="{{ url_for('home') }}">HOME</a>
+                <a href="{{ url_for('registration') }}">LOGIN</a>
+                </div>
+            </div>
+        </nav>
+        <div class="form" >
+            <form onsubmit="submitForm()" class ="form1">
+                <div class="box1">
+                    <h2>Login</h2>
+                    <div class="input">
+                        <span class="icon"><ion-icon name="mail-outline"></ion-icon></span>
+                        <input type="email" id="email" placeholder="Email" required>
+                    </div>
+                    <div class="input">
+                        <span class="icon"><ion-icon name="lock-closed-outline"></ion-icon></span>
+                        <input type="password" id="password" placeholder="Password" required>
+                    </div>
+                    <div class="rememberme1">
+                        <label><input type="checkbox">Remember me</label>
+                    </div>
+                    <button type="submit" class="btn2">Login</button>
+                    <div class="register">
+                        Don't you have an account? <a href="{{ url_for('register') }}">Register</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    </body>
+    <script>
+        function submitForm() {
+            event.preventDefault();
+
+            email = document.getElementById("email").value;
+            password = document.getElementById("password").value;
+
+            if (email !== "" && password !== "") {
+                window.location.href = "{{ url_for('chose') }}";
+            } else {
+                alert("Veuillez remplir tous les champs du formulaire.");
+            }
+        }
+    </script>
+</html>

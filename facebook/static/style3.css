@@ -1,0 +1,107 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins',sans-serif;
+}
+*:focus,
+*:active{
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent;
+}
+html,body{
+    display: grid;
+    height: 100%;
+    width: 100%;
+    place-items: center;
+   background-color: aliceblue;
+}
+
+.wrapper {
+    display: inline-flex;
+    list-style:none;
+    margin-top: -220px;
+}
+.wrapper i{
+    font-size: 25px;
+}
+.wrapper a{
+    color: black;
+}
+.wrapper .icon{
+    position: relative;
+    background-color: #ffffff;
+    border-radius: 50%;
+    padding: 15px;
+    margin: 20px;
+    width: 80px;
+    height: 80px;
+    font-size: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    box-shadow: 5px 10px 10px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+.wrapper .name{
+
+    position: absolute;
+    top: 0;
+    font-size: 14px;
+    background: #ffffff;
+    color: #ffffff;
+    padding: 5px 8px;
+    border-radius: 5px;
+    box-shadow: 0 10px 10px rgba(0,0,0,0.1);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+.wrapper .name::before{
+    position: absolute;
+    content:"";
+    height: 8px;
+    width: 8px;
+    background: #ffffff;
+    bottom: -3px;
+    left: 50%;
+    transform: translate(-50%) rotate(45deg);
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+.wrapper .icon:hover .name{
+    top: -45px;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    
+}
+.wrapper .icon:hover span ,
+.wrapper .icon:hover .name{
+    text-shadow: 0px -1px 0px rgba(0,0,0,0.1);
+}
+.wrapper .fb:hover, 
+.wrapper .fb:hover .name,
+.wrapper .fb:hover .name::before{
+    background: #1877f2;
+    color: #ffffff;
+
+}
+.wrapper .tw:hover,
+.wrapper .tw:hover .name,
+.wrapper .tw:hover .name::before{
+    background-color: #1da1fa;
+    color: #ffffff;
+}
+.wrapper .insta:hover,
+.wrapper .insta:hover .name,
+.wrapper .insta:hover .name::before{
+    background-color: #d624d6;
+    background: radial-gradient(circle at 30% 107%,
+    #fdf497 5%,
+    #fdf497 10%,
+    #fd5949 45%,
+    #d624d6 60%,
+    #285aeb 90%);
+}

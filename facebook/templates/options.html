@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Options</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    </head>
+    <body>
+        <nav id="nav">
+            <div class="navbar">
+                <div class="logo">
+                    <i class="fa-solid fa-unlock-keyhole"></i> SəcurityChəck 
+                </div>
+                <div class="links">
+                <a href="{{ url_for('home') }}">HOME</a>
+                <a href="{{ url_for('registration') }}">LOGIN</a>
+                </div>
+            </div>
+        </nav>
+        <div class="options">
+            <div class="opts">
+                <div class="opt1">
+                    <h4>Check Password Strength</h4>
+                    <p>Ensure the strength of your password by using our tool. Receive suggestions
+                        to enhance the strength of your password especially if it is considered 
+                        weak.</p>
+                </div>
+                <div class="opt2">
+                    <h4>Evaluate Account Security</h4>
+                    <p>By using this feature, you can obtain the security percentage<br> for your social 
+                        media account. This analysis includes a comprehensive review 
+                        of<br> various security aspects.</p>
+                </div>
+                <div class="opt3">
+                    <h4>Check Password Strength</h4>
+                    <p>Ensure the strength of your password by using our tool. Receive suggestions
+                        to enhance the strength of your password, especially if it is considered 
+                        weak.</p>
+                </div>
+            </div>
+            <div class="home">
+                <p>To access and utilize the options,<a href="{{ url_for('registration') }}">LOGIN</a></p>
+            </div>
+        </div>
+        <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    </body>
+</html>

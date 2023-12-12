@@ -23,7 +23,6 @@ app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = 'pass_root'
 app.config['MYSQL_DB'] = 'projet'
 app.config['MYSQL_PORT'] = 3307 
-app.config['MYSQL_CHARSET'] = 'utf8mb4' 
 
 mysql = MySQL(app)
 #################definition des fonctions#################
@@ -352,10 +351,10 @@ def analyze_facebook():
         print("Navigated to interactions, your comments")
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(2)
-        date_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
+        comments_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
 
         # Extract text from all date elements
-        dates = [date_element.text.strip() for date_element in date_elements]
+        dates = [comments_element.text.strip() for comments_element in comments_elements]
 
         # Write extracted data to comments.txt file
         with open('comments.txt', 'w', encoding='utf-8') as file:
@@ -379,55 +378,43 @@ def analyze_facebook():
                 current_date = date
                 comments_data[date] = comment_text
 
-        cur = mysql.connection.cursor()
-        email = session['user']['email']
-        cur.execute("SELECT id FROM users WHERE email = %s", (email,))
-        user_id = cur.fetchone()[0]
-        for date, comments_list in comments_data.items():
-            for comment_text in comments_list:
-                cur.execute("INSERT INTO comments (user_id, date, comment) VALUES (%s, %s, %s)",
-                    (user_id, f'{date}', comment_text))
-                mysql.connection.commit()
+        # Save as JSON with comments as separate strings
+        with open('comments.json', 'w', encoding='utf-8') as json_file:
+            json.dump(comments_data, json_file, ensure_ascii=False, indent=4)
         
         #devices
         driver.get('https://www.facebook.com/100060663511589/allactivity?activity_history=false&category_key=RECOGNIZEDDEVICES&manage_mode=false&should_load_landing_page=false')
         print("Navigated to Privacy Checkup")
         time.sleep(5)
-        date_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
+        device_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
 
 # Extract text from all date elements
-        dates = [date_element.text.strip() for date_element in date_elements]
+        dates = [device_element.text.strip() for device_element in device_elements]
         with open('devices.txt', 'w', encoding='utf-8') as file:
             file.write('\n'.join(dates))
         with open('devices.txt', 'r', encoding='utf-8') as file:
             data = file.read()
 
 # Split the text into date-comment pairs
-        comments = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
+        devices = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
 
 # Organize comments by date
-        comments_data = {}
+        devices_data = {}
         current_date = None
 
-        for comment in comments:
-            date = comment[0]
-            comment_text = comment[1].strip().split('\n')  # Split multiple comments into a list
+        for device in devices:
+            date = device[0]
+            device_text = device[1].strip().split('\n')  # Split multiple comments into a list
     
             if current_date == date:
-                comments_data[date].extend(comment_text)
+                devices_data[date].extend(device_text)
             else:
                 current_date = date
-                comments_data[date] = comment_text
+                devices_data[date] = device_text
 
-# Save as JSON with comments as separate stringscur = mysql.connection.cursor()
-        email = session['user']['email']
-        cur.execute("SELECT id FROM users WHERE email = %s", (email,))
-        user_id = cur.fetchone()[0]
-        for date, comments_list in comments_data.items():
-                for comments_text in comments_list:
-                    cur.execute("INSERT INTO devices (user_id, date, device) VALUES (%s, %s, %s)",
-                    (user_id, f'{date}', comment_text))
-                    mysql.connection.commit()
+# Save as JSON with comments as separate strings
+        with open('devices.json', 'w', encoding='utf-8') as json_file:
+            json.dump(devices_data, json_file, ensure_ascii=False, indent=4)
         
 
         time.sleep(5)
@@ -436,10 +423,10 @@ def analyze_facebook():
         print("Navigated to Privacy Checkup")
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(2)
-        date_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
+        likes_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
 
         # Extract text from all date elements
-        dates = [date_element.text.strip() for date_element in date_elements]
+        likes = [likes_element.text.strip() for likes_element in likes_elements]
 
         # Write extracted data to comments.txt file
         with open('likes.txt', 'w', encoding='utf-8') as file:
@@ -452,33 +439,22 @@ def analyze_facebook():
         comments = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
 
         # Organize comments by date
-        comments_data = {}
+        likes_data = {}
         current_date = None
 
-        for comment in comments:
-            date = comment[0]
-            comment_text = comment[1].strip().split('\n')  # Split multiple comments into a list
+        for like in likes:
+            date = like[0]
+            like_text = like[1].strip().split('\n')  # Split multiple comments into a list
             
             if current_date == date:
-                comments_data[date].extend(comment_text)
+                likes_data[date].extend(like_text)
             else:
                 current_date = date
-                comments_data[date] = comment_text
+                likes_data[date] = like_text
         
-        cur = mysql.connection.cursor()
-        email = session['user']['email']
-        cur.execute("SELECT id FROM users WHERE email = %s", (email,))
-        user_id = cur.fetchone()[0]  # Retrieve the user's ID from the database
-
-    # Assuming you have extracted data and stored it in variables like 'target_elements', 'span_elements', 'posts_data', 'devices_data'
-    # Replace these with your actual extracted data
-
-    # Insert extracted contact information into facebook_contact_info table
-        for date, comments_list in comments_data.items():
-            for comment_text in comments_list:
-                cur.execute("INSERT INTO likes (user_id, date, like_action) VALUES (%s, %s, %s)",
-                    (user_id, f'{date}', comment_text))
-                mysql.connection.commit()
+        # Save as JSON with comments as separate strings
+        with open('likes.json', 'w', encoding='utf-8') as json_file:
+            json.dump(likes_data, json_file, ensure_ascii=False, indent=4)   
         
         time.sleep(5)
         #primary location
@@ -491,12 +467,6 @@ def analyze_facebook():
         with open('prim_location.txt', 'w') as file:
             file.write(last_element + '\n')
             print(f"Extracted text '{last_element}' written to logged.txt")
-        cur = mysql.connection.cursor()
-        email = session['user']['email']
-        cur.execute("SELECT id FROM users WHERE email = %s", (email,))
-        user_id = cur.fetchone()[0]
-        cur.execute("INSERT INTO prim_location (user_id, location) VALUES (%s, %s)", (user_id,last_element,))
-        mysql.connection.commit()
         time.sleep(5)
         #logged in
         driver.get('https://www.facebook.com/100060663511589/allactivity?category_key=ACTIVESESSIONS&entry_point=ayi_hub')
@@ -504,10 +474,10 @@ def analyze_facebook():
 
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(2)
-        date_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
+        login_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
 
 # Extract text from all date elements
-        dates = [date_element.text.strip() for date_element in date_elements]
+        dates = [login_element.text.strip() for login_element in login_elements]
 
 # Write extracted data to comments.txt file
         with open('log_in.txt', 'w', encoding='utf-8') as file:
@@ -516,31 +486,25 @@ def analyze_facebook():
             data = file.read()
 
 # Split the text into date-comment pairs
-        comments = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
+        logins = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
 
 # Organize comments by date
-        comments_data = {}
+        logins_data = {}
         current_date = None
 
-        for comment in comments:
-            date = comment[0]
-            comment_text = comment[1].strip().split('\n')  # Split multiple comments into a list
+        for login in logins:
+            date = login[0]
+            login_text = login[1].strip().split('\n')  # Split multiple comments into a list
     
             if current_date == date:
-                comments_data[date].extend(comment_text)
+                logins_data[date].extend(login_text)
             else:
                 current_date = date
-                comments_data[date] = comment_text
-            
-            cur = mysql.connection.cursor()
-            email = session['user']['email']
-            cur.execute("SELECT id FROM users WHERE email = %s", (email,))
-            user_id = cur.fetchone()[0]
-            for date, comments_list in comments_data.items():
-                for comments_text in comments_list:
-                    cur.execute("INSERT INTO logins (user_id, date, login_action) VALUES (%s, %s, %s)",
-            (user_id, date, comments_text))
-                    mysql.connection.commit()
+                logins_data[date] = login_text
+
+# Save as JSON with comments as separate strings
+        with open('log_in.json', 'w', encoding='utf-8') as json_file:
+            json.dump(logins_data, json_file, ensure_ascii=False, indent=4)
 
 
 
@@ -551,10 +515,10 @@ def analyze_facebook():
             print("Navigated to Privacy Checkup")
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(2)
-            date_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
+            post_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
 
             # Extract text from all date elements
-            dates = [date_element.text.strip() for date_element in date_elements]
+            posts = [post_element.text.strip() for post_element in post_elements]
 
             # Write extracted data to comments.txt file
             with open('posts.txt', 'w', encoding='utf-8') as file:
@@ -565,42 +529,35 @@ def analyze_facebook():
                 data = file.read()
 
             # Split the text into date-comment pairs
-            comments = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
+            posts = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
 
             # Organize comments by date
-            comments_data = {}
+            posts_data = {}
             current_date = None
 
-            for comment in comments:
-                date = comment[0]
-                comment_text = comment[1].strip().split('\n')  # Split multiple comments into a list
+            for post in posts:
+                date = post[0]
+                post_text = post[1].strip().split('\n')  # Split multiple comments into a list
                 
                 if current_date == date:
-                    comments_data[date].extend(comment_text)
+                    posts_data[date].extend(post_text)
                 else:
                     current_date = date
-                    comments_data[date] = comment_text
+                    posts_data[date] = post_text
 
-            cur = mysql.connection.cursor()
-            email = session['user']['email']
-            cur.execute("SELECT id FROM users WHERE email = %s", (email,))
-            user_id = cur.fetchone()[0]
-            for date, comments_list in comments_data.items():
-                for comments_text in comments_list:
-                    cur.execute("INSERT INTO posts (user_id, date, post_content) VALUES (%s, %s, %s)",
-                    (user_id, f'{date}', comment_text))
-                    mysql.connection.commit()
-
+            # Save as JSON with comments as separate strings
+            with open('posts.json', 'w', encoding='utf-8') as json_file:
+                json.dump(posts_data, json_file, ensure_ascii=False, indent=4)
             time.sleep(5)
             driver.get('https://www.facebook.com/100060663511589/allactivity?activity_history=false&category_key=MANAGETAGSBYOTHERSCLUSTER&manage_mode=false&should_load_landing_page=false')
             time.sleep(2)
             print("Navigated to Privacy Checkup")
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(2)
-            date_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
+            tag_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
 
             # Extract text from all date elements
-            dates = [date_element.text.strip() for date_element in date_elements]
+            tags = [tag_element.text.strip() for tag_element in tag_elements]
 
             # Write extracted data to comments.txt file
             with open('tags.txt', 'w', encoding='utf-8') as file:
@@ -609,85 +566,29 @@ def analyze_facebook():
                 data = file.read()
 
             # Split the text into date-comment pairs
-            comments = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
+            tags = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
 
             # Organize comments by date
-            comments_data = {}
+            tags_data = {}
             current_date = None
 
-            for comment in comments:
-                date = comment[0]
-                comment_text = comment[1].strip().split('\n')  # Split multiple comments into a list
+            for tag in tags:
+                date = tag[0]
+                tag_text = tag[1].strip().split('\n')  # Split multiple comments into a list
                 
                 if current_date == date:
-                    comments_data[date].extend(comment_text)
+                    tags_data[date].extend(tag_text)
                 else:
                     current_date = date
-                    comments_data[date] = comment_text
+                    tags_data[date] = tag_text
 
-            cur = mysql.connection.cursor()
-            email = session['user']['email']
-            cur.execute("SELECT id FROM users WHERE email = %s", (email,))
-            user_id = cur.fetchone()[0]
-            for date, comments_list in comments_data.items():
-                for comments_text in comments_list:
-                    cur.execute("INSERT INTO tags (user_id, date, tag_content) VALUES (%s, %s, %s)",
-                    (user_id, f'{date}', comment_text))
-                    mysql.connection.commit()
-            time.sleep(5)
-            driver.get('https://www.facebook.com/100060663511589/allactivity?activity_history=false&category_key=SEARCH&manage_mode=false&should_load_landing_page=false')
-            time.sleep(2)
-            print("Navigated to Privacy Checkup")
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            time.sleep(2)
-            date_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
-
-# Extract text from all date elements
-            dates = [date_element.text.strip() for date_element in date_elements]
-
-# Write extracted data to comments.txt file
-            with open('search.txt', 'w', encoding='utf-8') as file:
-                file.write('\n'.join(dates))
-
-            with open('search.txt', 'r', encoding='utf-8') as file:
-                data = file.read()
-
-# Split the text into date-comment pairs
-                comments = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
-
-# Organize comments by date
-                comments_data = {}
-                current_date = None
-
-                for comment in comments:
-                    date = comment[0]
-                    comment_text = comment[1].strip().split('\n')  # Split multiple comments into a list
-    
-                    if current_date == date:
-                        comments_data[date].extend(comment_text)
-                    else:
-                        current_date = date
-                        comments_data[date] = comment_text
-                cur = mysql.connection.cursor()
-                email = session['user']['email']
-                cur.execute("SELECT id FROM users WHERE email = %s", (email,))
-                user_id = cur.fetchone()[0]
-                for date, comments_list in comments_data.items():
-                    for comment_text in comments_list:
-                        if isinstance(comment_text, list):  # Check if comment_text is a list
-                            for text in comment_text:
-                                cur.execute("INSERT INTO searches (user_id, date, search) VALUES (%s, %s, %s)",
-                            (user_id, f'{date}', text))
-                        else:
-                            cur.execute("INSERT INTO searches (user_id, date, search) VALUES (%s, %s, %s)",
-                        (user_id, f'{date}', comment_text))
-                            mysql.connection.commit()
-
+            # Save as JSON with comments as separate strings
+            with open('tags.json', 'w', encoding='utf-8') as json_file:
+                json.dump(comments_data, json_file, ensure_ascii=False, indent=4)
             driver.quit()
         print("Browser closed")
     except Exception as e:
         print(f"Exception occurred: {str(e)}")
-
     return ''
 if __name__ == '__main__':
     app.run(debug=True)

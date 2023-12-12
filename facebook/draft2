@@ -491,12 +491,6 @@ def analyze_facebook():
         with open('prim_location.txt', 'w') as file:
             file.write(last_element + '\n')
             print(f"Extracted text '{last_element}' written to logged.txt")
-        cur = mysql.connection.cursor()
-        email = session['user']['email']
-        cur.execute("SELECT id FROM users WHERE email = %s", (email,))
-        user_id = cur.fetchone()[0]
-        cur.execute("INSERT INTO prim_location (user_id, location) VALUES (%s, %s)", (user_id,last_element,))
-        mysql.connection.commit()
         time.sleep(5)
         #logged in
         driver.get('https://www.facebook.com/100060663511589/allactivity?category_key=ACTIVESESSIONS&entry_point=ayi_hub')

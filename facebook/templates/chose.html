@@ -1,25 +1,27 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Chose</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='style3.css') }}">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    </head>
-    <body>
-        <h1>Chose the desired social media platform</h1>
+<head>
+    <title>Choose</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style3.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <h1>Choose the desired social media platform</h1>
+    <form action="{{ url_for('chose') }}" method="post">
         <ul class="wrapper">
             <li class="icon fb">
                 <span class="name">Facebook</span>
-                <span><a href="{{ url_for('Login') }}"><i class="fab fa-facebook-f"></i></a></span>
+                <button type="submit" name="platform" value="Facebook"><i class="fab fa-facebook-f"></i></button>
             </li>
             <li class="icon tw">
                 <span class="name">Twitter</span>
-                <span><a href="{{ url_for('Login') }}"><i class="fab fa-twitter"></i></a></span>
+                <button type="submit" name="platform" value="Twitter"><i class="fab fa-twitter"></i></button>
             </li>
             <li class="icon insta">
                 <span class="name">Instagram</span>
-                <span><a href="{{ url_for('Login') }}"><i class="fab fa-instagram"></i></a></span>
+                <button type="submit" name="platform" value="Instagram"><i class="fab fa-instagram"></i></button>
             </li>
         </ul>
-    </body>
+    </form>
+</body>
 </html>

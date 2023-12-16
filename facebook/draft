@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.support.wait import WebDriverWait
 import time
 import json
 import re
@@ -13,6 +14,7 @@ import os
 from flask import Flask, render_template, request,redirect, session
 from flask_mysqldb import MySQL
 import pymysql
+
 
 app = Flask(__name__)
 
@@ -23,6 +25,7 @@ app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = 'pass_root'
 app.config['MYSQL_DB'] = 'projet'
 app.config['MYSQL_PORT'] = 3307 
+app.config['MYSQL_CHARSET'] = 'utf8mb4' 
 
 mysql = MySQL(app)
 #################definition des fonctions#################
@@ -74,14 +77,35 @@ def registration():
             cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
             user = cursor.fetchone()
             if user and bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
-    # Password matches, log the user in
-                session['user'] = {'email': email,}
+                # Password matches, log the user in
+                user_id = user[0]  # Assuming user_id is in the first position
+                session['user'] = {'email': email, 'user_id': user_id}
                 return render_template('chose.html')  # Redirect to the dashboard after successful login
+
+        # Invalid credentials or user does not exist
             else:
-    # Invalid credentials
                 return "Invalid email or password. Please try again or register."
 
     return render_template('registration.html')
+
+# def registration():
+#     if request.method == 'POST':
+#         email = request.form['email']
+#         password = request.form['password']
+
+#         # Check if the user exists
+#         with mysql.connection.cursor() as cursor:
+#             cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+#             user = cursor.fetchone()
+#             if user and bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
+#     # Password matches, log the user in
+#                 session['user'] = {'email': email,}
+#                 return render_template('chose.html')  # Redirect to the dashboard after successful login
+#             else:
+#     # Invalid credentials
+#                 return "Invalid email or password. Please try again or register."
+
+#     return render_template('registration.html')
 
 
 
@@ -107,7 +131,9 @@ def register():
             cur.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)", (username, email, hashed_password))
             mysql.connection.commit()
             cur.close()
-            session['user'] = {'email': email}
+            user_id = user[0]  # Assuming user_id is in the first position
+            session['user'] = {'email': email, 'user_id': user_id}
+            # session['user'] = {'email': email}
             return render_template('chose.html')  # Redirect to login page after registration
     return render_template('register.html')
 
@@ -119,29 +145,28 @@ def options():
 def Login():
     return render_template('Login.html') 
 
+@app.route('/Login1')
+def Login1():
+    return render_template('Login1.html') 
 
 
 # @app.route('/chose')
 # def chose():
 #     return render_template('chose.html') 
+
+
 @app.route('/chose', methods=['GET', 'POST'])
 def chose():
     if request.method == 'POST':
-        platform = request.form['platform']  # Assuming a form sends platform data
-        
-        if 'user' in session:  # Assuming the user is logged in
-            email = session['user']['email']  # Assuming user email is stored in the session
+        if 'platform' in request.form:
+            platform = request.form['platform']
 
-            # Save the selected platform and user email to the database
-            with mysql.connection.cursor() as cursor:
-                cursor.execute("INSERT INTO socialmediaaccounts (email, platform, account_name) VALUES (%s, %s, %s)", (email, platform, "user1"))
-                mysql.connection.commit()
-
-            return render_template('Login.html')  # Redirect to the login page or any other desired page
+            if platform == 'Facebook':
+                return redirect('/analyze')
+            elif platform == 'Twitter':
+                return redirect('/analyze1')
 
     return render_template('chose.html')
-
-
 
 @app.route('/password')
 def password():
@@ -162,11 +187,16 @@ def analyze():
     # Add code for rendering the Facebook analysis page
     return render_template('analyse.html')
 
+@app.route('/analyze1')
+def analyze1():
+    # Add code for rendering the Facebook analysis page
+    return render_template('analyse1.html')
+
 @app.route('/analyze_facebook', methods=['POST'])
 def analyze_facebook():
     #Your Inform
-    usr = "saadprojet@gmail.com"
-    pwd = "saadprojet123"
+    #usr = "saadprojet@gmail.com"
+    #pwd = "saadprojet123"
     chrome_options = webdriver.ChromeOptions()
     prefs = {"profile.default_content_setting_values.notifications": 2}
     chrome_options.add_experimental_option("prefs", prefs)
@@ -178,20 +208,20 @@ def analyze_facebook():
     wait = WebDriverWait(driver, 10)
 
     username_box = wait.until(EC.element_to_be_clickable((By.ID, 'email')))
-    username_box.send_keys(usr)
+    #username_box.send_keys(usr)
     print("Email Id entered")
 
     password_box = wait.until(EC.element_to_be_clickable((By.ID, 'pass')))
-    password_box.send_keys(pwd)
+    #password_box.send_keys(pwd)
     print("Password entered")
 
     login_box = wait.until(EC.element_to_be_clickable((By.NAME, 'login')))
-    login_box.click()
+    #login_box.click()
     print("Logged in")
 
     try:
         #contact information
-        time.sleep(5)
+        time.sleep(25)
         driver.get('https://www.facebook.com/your_information/?tab=your_information&tile=personal_info_grouping')
         print("Navigated to Privacy Checkup")
         time.sleep(5)
@@ -351,10 +381,10 @@ def analyze_facebook():
         print("Navigated to interactions, your comments")
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(2)
-        comments_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
+        date_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
 
         # Extract text from all date elements
-        dates = [comments_element.text.strip() for comments_element in comments_elements]
+        dates = [date_element.text.strip() for date_element in date_elements]
 
         # Write extracted data to comments.txt file
         with open('comments.txt', 'w', encoding='utf-8') as file:
@@ -378,43 +408,55 @@ def analyze_facebook():
                 current_date = date
                 comments_data[date] = comment_text
 
-        # Save as JSON with comments as separate strings
-        with open('comments.json', 'w', encoding='utf-8') as json_file:
-            json.dump(comments_data, json_file, ensure_ascii=False, indent=4)
+        cur = mysql.connection.cursor()
+        email = session['user']['email']
+        cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+        user_id = cur.fetchone()[0]
+        for date, comments_list in comments_data.items():
+            for comment_text in comments_list:
+                cur.execute("INSERT INTO comments (user_id, date, comment) VALUES (%s, %s, %s)",
+                    (user_id, f'{date}', comment_text))
+                mysql.connection.commit()
         
         #devices
         driver.get('https://www.facebook.com/100060663511589/allactivity?activity_history=false&category_key=RECOGNIZEDDEVICES&manage_mode=false&should_load_landing_page=false')
         print("Navigated to Privacy Checkup")
         time.sleep(5)
-        device_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
+        date_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
 
 # Extract text from all date elements
-        dates = [device_element.text.strip() for device_element in device_elements]
+        dates = [date_element.text.strip() for date_element in date_elements]
         with open('devices.txt', 'w', encoding='utf-8') as file:
             file.write('\n'.join(dates))
         with open('devices.txt', 'r', encoding='utf-8') as file:
             data = file.read()
 
 # Split the text into date-comment pairs
-        devices = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
+        comments = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
 
 # Organize comments by date
-        devices_data = {}
+        comments_data = {}
         current_date = None
 
-        for device in devices:
-            date = device[0]
-            device_text = device[1].strip().split('\n')  # Split multiple comments into a list
+        for comment in comments:
+            date = comment[0]
+            comment_text = comment[1].strip().split('\n')  # Split multiple comments into a list
     
             if current_date == date:
-                devices_data[date].extend(device_text)
+                comments_data[date].extend(comment_text)
             else:
                 current_date = date
-                devices_data[date] = device_text
+                comments_data[date] = comment_text
 
-# Save as JSON with comments as separate strings
-        with open('devices.json', 'w', encoding='utf-8') as json_file:
-            json.dump(devices_data, json_file, ensure_ascii=False, indent=4)
+# Save as JSON with comments as separate stringscur = mysql.connection.cursor()
+        email = session['user']['email']
+        cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+        user_id = cur.fetchone()[0]
+        for date, comments_list in comments_data.items():
+                for comments_text in comments_list:
+                    cur.execute("INSERT INTO devices (user_id, date, device) VALUES (%s, %s, %s)",
+                    (user_id, f'{date}', comment_text))
+                    mysql.connection.commit()
         
 
         time.sleep(5)
@@ -423,10 +465,10 @@ def analyze_facebook():
         print("Navigated to Privacy Checkup")
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(2)
-        likes_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
+        date_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
 
         # Extract text from all date elements
-        likes = [likes_element.text.strip() for likes_element in likes_elements]
+        dates = [date_element.text.strip() for date_element in date_elements]
 
         # Write extracted data to comments.txt file
         with open('likes.txt', 'w', encoding='utf-8') as file:
@@ -439,22 +481,33 @@ def analyze_facebook():
         comments = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
 
         # Organize comments by date
-        likes_data = {}
+        comments_data = {}
         current_date = None
 
-        for like in likes:
-            date = like[0]
-            like_text = like[1].strip().split('\n')  # Split multiple comments into a list
+        for comment in comments:
+            date = comment[0]
+            comment_text = comment[1].strip().split('\n')  # Split multiple comments into a list
             
             if current_date == date:
-                likes_data[date].extend(like_text)
+                comments_data[date].extend(comment_text)
             else:
                 current_date = date
-                likes_data[date] = like_text
+                comments_data[date] = comment_text
         
-        # Save as JSON with comments as separate strings
-        with open('likes.json', 'w', encoding='utf-8') as json_file:
-            json.dump(likes_data, json_file, ensure_ascii=False, indent=4)   
+        cur = mysql.connection.cursor()
+        email = session['user']['email']
+        cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+        user_id = cur.fetchone()[0]  # Retrieve the user's ID from the database
+
+    # Assuming you have extracted data and stored it in variables like 'target_elements', 'span_elements', 'posts_data', 'devices_data'
+    # Replace these with your actual extracted data
+
+    # Insert extracted contact information into facebook_contact_info table
+        for date, comments_list in comments_data.items():
+            for comment_text in comments_list:
+                cur.execute("INSERT INTO likes (user_id, date, like_action) VALUES (%s, %s, %s)",
+                    (user_id, f'{date}', comment_text))
+                mysql.connection.commit()
         
         time.sleep(5)
         #primary location
@@ -467,6 +520,12 @@ def analyze_facebook():
         with open('prim_location.txt', 'w') as file:
             file.write(last_element + '\n')
             print(f"Extracted text '{last_element}' written to logged.txt")
+        cur = mysql.connection.cursor()
+        email = session['user']['email']
+        cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+        user_id = cur.fetchone()[0]
+        cur.execute("INSERT INTO prim_location (user_id, location) VALUES (%s, %s)", (user_id,last_element,))
+        mysql.connection.commit()
         time.sleep(5)
         #logged in
         driver.get('https://www.facebook.com/100060663511589/allactivity?category_key=ACTIVESESSIONS&entry_point=ayi_hub')
@@ -474,10 +533,10 @@ def analyze_facebook():
 
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(2)
-        login_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
+        date_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
 
 # Extract text from all date elements
-        dates = [login_element.text.strip() for login_element in login_elements]
+        dates = [date_element.text.strip() for date_element in date_elements]
 
 # Write extracted data to comments.txt file
         with open('log_in.txt', 'w', encoding='utf-8') as file:
@@ -486,28 +545,31 @@ def analyze_facebook():
             data = file.read()
 
 # Split the text into date-comment pairs
-        logins = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
+        comments = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
 
 # Organize comments by date
-        logins_data = {}
+        comments_data = {}
         current_date = None
 
-        for login in logins:
-            date = login[0]
-            login_text = login[1].strip().split('\n')  # Split multiple comments into a list
+        for comment in comments:
+            date = comment[0]
+            comment_text = comment[1].strip().split('\n')  # Split multiple comments into a list
     
             if current_date == date:
-                logins_data[date].extend(login_text)
+                comments_data[date].extend(comment_text)
             else:
                 current_date = date
-                logins_data[date] = login_text
-
-# Save as JSON with comments as separate strings
-        with open('log_in.json', 'w', encoding='utf-8') as json_file:
-            json.dump(logins_data, json_file, ensure_ascii=False, indent=4)
-
-
-
+                comments_data[date] = comment_text
+            
+            cur = mysql.connection.cursor()
+            email = session['user']['email']
+            cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+            user_id = cur.fetchone()[0]
+            for date, comments_list in comments_data.items():
+                for comments_text in comments_list:
+                    cur.execute("INSERT INTO logins (user_id, date, login_action) VALUES (%s, %s, %s)",
+            (user_id, date, comments_text))
+                    mysql.connection.commit()
 
             time.sleep(5)
             driver.get('https://www.facebook.com/100060663511589/allactivity?activity_history=false&category_key=MANAGEPOSTSPHOTOSANDVIDEOS&manage_mode=false&should_load_landing_page=false')
@@ -515,10 +577,10 @@ def analyze_facebook():
             print("Navigated to Privacy Checkup")
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(2)
-            post_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
+            date_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
 
             # Extract text from all date elements
-            posts = [post_element.text.strip() for post_element in post_elements]
+            dates = [date_element.text.strip() for date_element in date_elements]
 
             # Write extracted data to comments.txt file
             with open('posts.txt', 'w', encoding='utf-8') as file:
@@ -529,35 +591,42 @@ def analyze_facebook():
                 data = file.read()
 
             # Split the text into date-comment pairs
-            posts = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
+            comments = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
 
             # Organize comments by date
-            posts_data = {}
+            comments_data = {}
             current_date = None
 
-            for post in posts:
-                date = post[0]
-                post_text = post[1].strip().split('\n')  # Split multiple comments into a list
+            for comment in comments:
+                date = comment[0]
+                comment_text = comment[1].strip().split('\n')  # Split multiple comments into a list
                 
                 if current_date == date:
-                    posts_data[date].extend(post_text)
+                    comments_data[date].extend(comment_text)
                 else:
                     current_date = date
-                    posts_data[date] = post_text
+                    comments_data[date] = comment_text
 
-            # Save as JSON with comments as separate strings
-            with open('posts.json', 'w', encoding='utf-8') as json_file:
-                json.dump(posts_data, json_file, ensure_ascii=False, indent=4)
+            cur = mysql.connection.cursor()
+            email = session['user']['email']
+            cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+            user_id = cur.fetchone()[0]
+            for date, comments_list in comments_data.items():
+                for comments_text in comments_list:
+                    cur.execute("INSERT INTO posts (user_id, date, post_content) VALUES (%s, %s, %s)",
+                    (user_id, f'{date}', comment_text))
+                    mysql.connection.commit()
+
             time.sleep(5)
             driver.get('https://www.facebook.com/100060663511589/allactivity?activity_history=false&category_key=MANAGETAGSBYOTHERSCLUSTER&manage_mode=false&should_load_landing_page=false')
             time.sleep(2)
             print("Navigated to Privacy Checkup")
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(2)
-            tag_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
+            date_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
 
             # Extract text from all date elements
-            tags = [tag_element.text.strip() for tag_element in tag_elements]
+            dates = [date_element.text.strip() for date_element in date_elements]
 
             # Write extracted data to comments.txt file
             with open('tags.txt', 'w', encoding='utf-8') as file:
@@ -566,29 +635,667 @@ def analyze_facebook():
                 data = file.read()
 
             # Split the text into date-comment pairs
-            tags = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
+            comments = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
 
             # Organize comments by date
-            tags_data = {}
+            comments_data = {}
             current_date = None
 
-            for tag in tags:
-                date = tag[0]
-                tag_text = tag[1].strip().split('\n')  # Split multiple comments into a list
+            for comment in comments:
+                date = comment[0]
+                comment_text = comment[1].strip().split('\n')  # Split multiple comments into a list
                 
                 if current_date == date:
-                    tags_data[date].extend(tag_text)
+                    comments_data[date].extend(comment_text)
                 else:
                     current_date = date
-                    tags_data[date] = tag_text
+                    comments_data[date] = comment_text
 
-            # Save as JSON with comments as separate strings
-            with open('tags.json', 'w', encoding='utf-8') as json_file:
-                json.dump(comments_data, json_file, ensure_ascii=False, indent=4)
+            cur = mysql.connection.cursor()
+            email = session['user']['email']
+            cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+            user_id = cur.fetchone()[0]
+            for date, comments_list in comments_data.items():
+                for comments_text in comments_list:
+                    cur.execute("INSERT INTO tags (user_id, date, tag_content) VALUES (%s, %s, %s)",
+                    (user_id, f'{date}', comment_text))
+                    mysql.connection.commit()
+            time.sleep(5)
+            driver.get('https://www.facebook.com/100060663511589/allactivity?activity_history=false&category_key=SEARCH&manage_mode=false&should_load_landing_page=false')
+            time.sleep(2)
+            print("Navigated to Privacy Checkup")
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(2)
+            date_elements = driver.find_elements('css selector', 'span.x1lliihq.x6ikm8r.x10wlt62.x1n2onr6.x1j85h84')
+
+# Extract text from all date elements
+            dates = [date_element.text.strip() for date_element in date_elements]
+
+# Write extracted data to comments.txt file
+            with open('search.txt', 'w', encoding='utf-8') as file:
+                file.write('\n'.join(dates))
+
+            with open('search.txt', 'r', encoding='utf-8') as file:
+                data = file.read()
+
+# Split the text into date-comment pairs
+                comments = re.findall(r'(\w+ \d{1,2}, \d{4})\n([\s\S]*?)(?=\w+ \d{1,2}, \d{4}\n|\Z)', data)
+
+# Organize comments by date
+                comments_data = {}
+                current_date = None
+
+                for comment in comments:
+                    date = comment[0]
+                    comment_text = comment[1].strip().split('\n')  # Split multiple comments into a list
+    
+                    if current_date == date:
+                        comments_data[date].extend(comment_text)
+                    else:
+                        current_date = date
+                        comments_data[date] = comment_text
+                cur = mysql.connection.cursor()
+                email = session['user']['email']
+                cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+                user_id = cur.fetchone()[0]
+                for date, comments_list in comments_data.items():
+                    for comment_text in comments_list:
+                        if isinstance(comment_text, list):  # Check if comment_text is a list
+                            for text in comment_text:
+                                cur.execute("INSERT INTO searches (user_id, date, search) VALUES (%s, %s, %s)",
+                            (user_id, f'{date}', text))
+                        else:
+                            cur.execute("INSERT INTO searches (user_id, date, search) VALUES (%s, %s, %s)",
+                        (user_id, f'{date}', comment_text))
+                            mysql.connection.commit()
+
             driver.quit()
         print("Browser closed")
     except Exception as e:
         print(f"Exception occurred: {str(e)}")
+
     return ''
+
+@app.route('/analyze_twitter', methods=['POST'])
+def analyze_twitter():
+    # navigate to twitter's login page
+    driver = webdriver.Chrome()
+    driver.get("https://twitter.com/i/flow/login")
+
+    time.sleep(2)
+
+    # enter username
+    username = driver.find_element(By.TAG_NAME, "input")
+    username.send_keys("saadprojet")
+
+    # press on the "next" button
+    all_buttons = driver.find_elements(
+        By.XPATH, "//div[@role='button']"
+    )
+    all_buttons[-2].click()
+
+    time.sleep(2)
+
+    # enter password
+    password = driver.find_element(
+        By.XPATH, "//input[@type='password']"
+    )
+    password.send_keys("saadprojet123")
+
+    time.sleep(2)
+
+    # press on the login button
+    all_buttons = driver.find_elements(
+        By.XPATH, "//div[@role='button']"
+    )
+    all_buttons[-1].click()
+
+    time.sleep(2)
+
+    # search a keyword
+    driver.get("https://twitter.com/settings/sessions")
+    time.sleep(2)
+
+    # Find all elements within the parent element
+    elements = driver.find_elements(By.CSS_SELECTOR, '[aria-selected="false"][role="tab"]')
+    elems= elements[9:]
+    # Write the contents to sessions.txt
+    with open('sessions.txt', 'w', encoding='utf-8') as file:
+        for element in elems:
+            file.write(element.text + '\n')
+
+# Read data from sessions.txt and filter out lines with '·'
+    with open('sessions.txt', 'r', encoding='utf-8') as file:
+        lines = [line.strip() for line in file.readlines() if '·' not in line]
+
+        sessions = []
+        for i in range(0, len(lines), 3):
+            if i + 2 < len(lines):
+                platform_location = lines[i].strip()
+                time_info = lines[i + 2].strip()
+                session_data = {
+            'platform': platform_location,
+            'location': lines[i + 1].strip(),
+            'time': time_info
+        }
+                sessions.append(session_data)
+            else:
+                break  # Exit the loop if there are not enough lines for a complete set
+
+# MySQL Database Insertion
+        cur = mysql.connection.cursor()
+        email = session['user']['email']
+        cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+        user_id = cur.fetchone()[0]
+
+        for session_data in sessions:
+            timestamp = session_data['time']
+            device = session_data['platform']
+            location = session_data['location']
+            
+
+            cur.execute("INSERT INTO twt_sessions (date, device, location, user_id) VALUES (%s, %s, %s, %s)",
+                (timestamp, device, location, user_id))
+        mysql.connection.commit()
+
+        cur.close()  # Close the cursor after all operations are done
+
+    # Close the browser window
+    # driver.quit()
+    driver.get("https://twitter.com/settings/off_twitter_activity")
+    time.sleep(2)
+    # password = driver.find_element(
+    #     By.XPATH, "//input[@type='password']"
+    # )
+    # password.send_keys("saadprojet123")
+    # all_buttons = driver.find_elements(
+    #     By.XPATH, "//div[@role='button']"
+    # )
+    # all_buttons[-1].click()
+
+    checkbox = driver.find_element(By.CSS_SELECTOR,'input[type="checkbox"]')
+
+    # Check if the checkbox is selected
+    is_checked = checkbox.is_selected()
+    with open('twitter.txt', 'w') as file:
+        file.write(f"{is_checked}\n")
+
+    driver.get("https://twitter.com/settings/delegate")
+    time.sleep(2)
+    checkbox = driver.find_element(By.CSS_SELECTOR, 'input[type="checkbox"][role="switch"]')
+
+    # Check if the checkbox is selected
+    is_checked = checkbox.is_selected()
+    with open('twitter.txt', 'a') as file:
+        if is_checked:
+            try:
+            # Target the div when the checkbox is on
+                checked_div = driver.find_element(By.CSS_SELECTOR, 'input[name="allow_others_delegation"]')
+                if checked_div.is_selected():
+                    file.write("checked: allow others delegation\n")
+                else: 
+                    file.write("checked: Only allow people you follow to invite you.")
+            except:
+                print("Checkbox is checked, but the specific div isn't.")
+        else:
+        # Target the div when the checkbox is off
+            file.write("not checked\n")
+
+    driver.get("https://twitter.com/settings/tagging")
+    time.sleep(2)
+    checkbox = driver.find_element(By.CSS_SELECTOR, 'input[type="checkbox"][role="switch"]')
+
+    # Check if the checkbox is selected
+    is_checked = checkbox.is_selected()
+    with open('twitter.txt', 'a') as file:
+        if is_checked:
+            try:
+            # Target the div when the checkbox is on
+                elements = driver.find_elements(By.CSS_SELECTOR, 'input[type="radio"][name="allow_media_tagging"]')
+                position = "Anyone can tag you"
+                for element in elements:
+        # Check if the element is checked
+                    if element.is_selected():
+                        file.write(f"checked: {position}\n")
+                        break  # Stop the loop after finding the checked element
+
+        # Increment the position counter
+                    position = "Only people you follow can tag you"
+                # if checked_div.is_selected():
+                #      file.write("checked: Anyone can tag you\n")
+                # else: 
+                #     print("checked: Only people you follow can tag you.")
+            except:
+                print("Checkbox is checked, but the specific div isn't.")
+        else:
+        # Target the div when the checkbox is off
+            file.write("not checked\n")
+
+    driver.get("https://twitter.com/settings/audience_and_tagging")
+    time.sleep(2)
+
+    checkbox = driver.find_element(By.CSS_SELECTOR, 'input[type="checkbox"]')
+
+    # Check if the checkbox is selected
+    is_checked = checkbox.is_selected()
+    with open('twitter.txt', 'a') as file:
+        if is_checked:
+            file.write("The checkbox is checked\n")
+        else:
+            file.write("The checkbox is not checked\n")
+
+    driver.get("https://twitter.com/settings/your_tweets")
+    time.sleep(2)
+
+    checkbox = driver.find_element(By.CSS_SELECTOR, 'input[type="checkbox"]')
+
+    # Check if the checkbox is selected
+    is_checked = checkbox.is_selected()
+    with open('twitter.txt', 'a') as file:
+        if is_checked:
+            file.write("The checkbox is checked")
+        else:
+            file.write("The checkbox is not checked")
+    driver.get("https://twitter.com/settings/location")
+    time.sleep(2)
+
+    checkbox = driver.find_element(By.CSS_SELECTOR, 'input[type="checkbox"]')
+
+    # Check if the checkbox is selected
+    is_checked = checkbox.is_selected()
+    with open('twitter.txt', 'a') as file:
+        if is_checked:
+            file.write("\nThe checkbox is checked\n")
+        else:
+            file.write("\nThe checkbox is not checked\n")
+
+    driver.get("https://twitter.com/settings/content_you_see")
+    time.sleep(2)
+
+    checkbox = driver.find_element(By.CSS_SELECTOR, 'input[type="checkbox"]')
+
+    # Check if the checkbox is selected
+    is_checked = checkbox.is_selected()
+    with open('twitter.txt', 'a') as file:
+        if is_checked:
+            file.write("The checkbox is checked\n")
+        else:
+            file.write("The checkbox is not checked\n")
+    driver.get("https://twitter.com/settings/search")
+    time.sleep(2)
+
+    checkboxes = driver.find_elements(By.CSS_SELECTOR, 'input[type="checkbox"]')
+
+    # Check if the checkbox is selected
+    with open('twitter.txt', 'a') as file:
+        for checkbox in checkboxes:
+            is_checked = checkbox.is_selected()
+            if is_checked:
+                file.write("The checkbox is checked\n")
+            else:
+                file.write("The checkbox is not checked\n")
+
+    driver.get("https://twitter.com/settings/notifications/advanced_filters")
+    time.sleep(2)
+
+    checkboxes = driver.find_elements(By.CSS_SELECTOR, 'input[type="checkbox"]')
+
+    # Check if the checkbox is selected
+    with open('twitter.txt', 'a') as file:
+        for checkbox in checkboxes:
+            is_checked = checkbox.is_selected()
+            if is_checked:
+                file.write("The checkbox is checked\n")
+            else:
+                file.write("The checkbox is not checked\n")
+
+    driver.get("https://twitter.com/settings/direct_messages")
+    time.sleep(2)
+    # checkbox = driver.find_element(By.CSS_SELECTOR, 'input[type="checkbox"][role="switch"]')
+
+    # Check if the checkbox is selected
+    # is_checked = checkbox.is_selected()
+    with open('twitter.txt', 'a') as file:
+        # if is_checked:
+            try:
+            # Target the div when the checkbox is on
+                elements = driver.find_elements(By.CSS_SELECTOR, 'input[type="radio"][name="allow_dms_from"]')
+                position = 1
+                for element in elements:
+        # Check if the element is checked
+                    if element.is_selected():
+                        file.write(f"checked: {position}")
+                        break  # Stop the loop after finding the checked element
+    # Increment the position counter
+                    position += 1
+            except:
+                print("Checkbox is checked, but the specific div isn't")
+    checkbox = driver.find_element(By.CSS_SELECTOR, 'input[type="checkbox"]')
+
+    # Check if the checkbox is selected
+    is_checked = checkbox.is_selected()
+    with open('twitter.txt', 'a') as file:
+        if is_checked:
+            file.write("\nThe checkbox is checked")
+        else:
+            file.write("\nThe checkbox is not checked\n")
+
+    driver.get("https://twitter.com/settings/spaces")
+    time.sleep(2)
+    checkbox = driver.find_element(By.CSS_SELECTOR, 'input[type="checkbox"][role="switch"]')
+
+    # Check if the checkbox is selected
+    is_checked = checkbox.is_selected()
+    with open('twitter.txt', 'a') as file:
+        file.write(f"\n{str(is_checked)}")
+
+    driver.get("https://twitter.com/settings/contacts")
+    time.sleep(2)
+
+    checkboxes = driver.find_elements(By.CSS_SELECTOR, 'input[type="checkbox"]')
+
+    # Check if the checkbox is selected
+    with open('twitter.txt', 'a') as file:
+        for checkbox in checkboxes:
+            is_checked = checkbox.is_selected()
+            if is_checked:
+                file.write("\nThe checkbox is checked")
+            else:
+                file.write("\nThe checkbox is not checked")
+
+    driver.get("https://twitter.com/settings/data_sharing_with_business_partners")
+    time.sleep(2)
+    checkbox = driver.find_element(By.CSS_SELECTOR, 'input[type="checkbox"]')
+
+    # Check if the checkbox is selected
+    is_checked = checkbox.is_selected()
+    with open('twitter.txt', 'a') as file:
+        file.write(f"\n{str(is_checked)}")
+
+    driver.get("https://twitter.com/settings/account/login_verification")
+    time.sleep(2)
+    checkboxes = driver.find_elements(By.CSS_SELECTOR, 'input[type="checkbox"]')
+
+    # Check if the checkbox is selected
+    with open('twitter.txt', 'a') as file:
+        for checkbox in checkboxes:
+            is_checked = checkbox.is_selected()
+            if is_checked:
+                file.write("\nThe checkbox is checked")
+            else:
+                file.write("\nThe checkbox is not checked")
+    def get_tweet_data(article):
+        user = article.find_element(By.CSS_SELECTOR, 'div[data-testid="User-Name"]').text.split('\n')
+        name = user[0]
+        username = user[1]
+        postdate = user[-1]
+        tweetText = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-testid="tweetText"]'))).text
+    # tweetText = article.find_element(By.CSS_SELECTOR,'div[data-testid="tweetText"]').text
+    # reply_count = article.find_element(By.XPATH, ".//div[@data-testid='reply']").text
+    # retweet_count = article.find_element(By.XPATH, ".//div[@data-testid='retweet']").text
+    # like_count = article.find_element(By.XPATH, ".//div[@data-testid='like']").text
+
+        return name, username, postdate, tweetText #reply_count, retweet_count, like_count
+
+# options = ChromeOptions()
+# options.add_argument("--start-maximized")
+# options.add_experimental_option("excludeSwitches", ["enable-automation"])
+# driver = Chrome(options=options)
+
+    wait = WebDriverWait(driver, 10)
+    driver.get("https://twitter.com/login")
+
+# username = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'input[name="text"]')))
+# username.send_keys("saadprojet")
+# username.send_keys(Keys.ENTER)
+
+# password = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'input[name="password"]')))
+# password.send_keys('saadprojet123')
+# password.send_keys(Keys.ENTER)
+
+# search_box = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'input[data-testid="SearchBox_Search_Input"]')))
+# search_box.send_keys('@saadprojet')
+# search_box.send_keys(Keys.ENTER)
+    
+    driver.get("https://twitter.com/saadprojet/with_replies")  # Navigate directly to the desired URL
+    wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'article[data-testid="tweet"]')))
+    data = []
+    tweet_ids = set()
+    last_position = driver.execute_script("return window.pageYOffset;")
+    scrolling = True
+
+    while scrolling:
+        page_articles = driver.find_elements(By.CSS_SELECTOR, 'article[data-testid="tweet"]')
+        for article in page_articles:
+            tweet = get_tweet_data(article)
+            if tweet:
+                tweet_id = ''.join(tweet)
+                if tweet_id not in tweet_ids:
+                    tweet_ids.add(tweet_id)
+                    data.append(tweet)
+
+        scroll_attempt = 0
+        while True:
+            driver.execute_script('window.scrollTo(0,document.body.scrollHeight);')
+            time.sleep(3)
+            current_position = driver.execute_script("return window.pageYOffset;")
+            if last_position == current_position:
+                scroll_attempt += 1
+
+                if scroll_attempt >= 3:
+                    scrolling = False
+                    break
+                else:
+                    time.sleep(2)
+            else:
+                last_position = current_position
+                break
+    with open('data.txt', 'w', encoding='utf-8') as file:
+        for tweet_data in data:
+            file.write(str(tweet_data) + '\n')
+    driver.get("https://twitter.com/saadprojet/likes")  # Navigate directly to the desired URL
+
+    wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'article[data-testid="tweet"]')))
+    data = []
+    tweet_ids = set()
+    last_position = driver.execute_script("return window.pageYOffset;")
+    scrolling = True
+
+# Example scraped data
+
+# Insert scraped data into the table
+
+
+    while scrolling:
+        page_articles = driver.find_elements(By.CSS_SELECTOR, 'article[data-testid="tweet"]')
+        for article in page_articles:
+            tweet = get_tweet_data(article)
+            if tweet:
+                tweet_id = ''.join(tweet)
+                if tweet_id not in tweet_ids:
+                    tweet_ids.add(tweet_id)
+                    data.append(tweet)
+
+        scroll_attempt = 0
+        while True:
+            driver.execute_script('window.scrollTo(0,document.body.scrollHeight);')
+            time.sleep(3)
+            current_position = driver.execute_script("return window.pageYOffset;")
+            if last_position == current_position:
+                scroll_attempt += 1
+
+                if scroll_attempt >= 3:
+                    scrolling = False
+                    break
+                else:
+                    time.sleep(2)
+            else:
+                last_position = current_position
+                break
+    with open('data.txt', 'a', encoding='utf-8') as file:
+        for tweet_data in data:
+            file.write(str(tweet_data) + '\n')
+    # Close the browser window
+        driver.quit()
+        return ''
+
+from difflib import SequenceMatcher
+
+def read_file(file_path):
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+    return [line.strip() for line in lines]
+
+def calculate_similarity_percentage(file1, file2):
+    # Use SequenceMatcher to compare the two files
+    sequence_matcher = SequenceMatcher(None, file1, file2)
+    similarity_ratio = sequence_matcher.ratio()
+
+    # Calculate the percentage similarity
+    similarity_percentage = int(similarity_ratio * 90)
+
+    return similarity_percentage
+
+@app.route('/pourcentage')
+
+def pourcentage():
+    file_path_facebook = 'facebook.txt'
+    file_path_ideal = 'Ideal1.txt'
+
+    # Read the contents of the files
+    facebook_content = read_file(file_path_facebook)
+    ideal_content = read_file(file_path_ideal)
+
+    # Calculate the similarity percentage
+    percentage = calculate_similarity_percentage(facebook_content, ideal_content)
+
+    # Read the content of the password_strength file
+    with open('password_strength.txt', 'r') as file:
+        password_strength_content = file.read()
+
+    # Update the percentage based on the content of password_strength
+    if 'Weak' in password_strength_content:
+        percentage += 3
+    elif 'Medium' in password_strength_content:
+        percentage += 5
+    elif 'Strong' in password_strength_content:
+        percentage += 10
+
+    # Define a function to check comments for negative/hate speech
+    def check_comments_for_menaces():
+        # Establish a database connection within the application context
+        with app.app_context():
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT date, comment FROM comments")
+            comments_data = cur.fetchall()
+
+            # Load negative/hate speech terms from a text file
+            with open('negative_words.txt', 'r') as file:
+                negative_words = file.read().splitlines()
+
+            # Iterate through comments to detect negative/hate speech
+            for date, comment_text in comments_data:
+                for word in negative_words:
+                    if word in comment_text:
+                        # Save detected comments to the 'menaces' table
+                        cur.execute("INSERT INTO menaces (table_name, date, comment) VALUES (%s, %s, %s)",
+                                    ('comments', date, comment_text))
+                        mysql.connection.commit()
+                        break  # Break once a negative word is found in the comment
+            
+            cur.execute("SELECT date, like_action FROM likes")
+            comments_data = cur.fetchall()
+
+            # Load negative/hate speech terms from a text file
+            with open('negative_words.txt', 'r') as file:
+                negative_words = file.read().splitlines()
+
+            # Iterate through comments to detect negative/hate speech
+            for date, comment_text in comments_data:
+                for word in negative_words:
+                    if word in comment_text:
+                        # Save detected comments to the 'menaces' table
+                        cur.execute("INSERT INTO menaces (table_name, date, comment) VALUES (%s, %s, %s)",
+                                    ('likes', date, comment_text))
+                        mysql.connection.commit()
+                        break  # Break once a negative word is found in the comment
+            
+            cur.execute("SELECT date, tag_content FROM tags")
+            comments_data = cur.fetchall()
+
+            # Load negative/hate speech terms from a text file
+            with open('negative_words.txt', 'r') as file:
+                negative_words = file.read().splitlines()
+
+            # Iterate through comments to detect negative/hate speech
+            for date, comment_text in comments_data:
+                for word in negative_words:
+                    if word in comment_text:
+                        # Save detected comments to the 'menaces' table
+                        cur.execute("INSERT INTO menaces (table_name, date, comment) VALUES (%s, %s, %s)",
+                                    ('tag', date, comment_text))
+                        mysql.connection.commit()
+                        break  # Break once a negative word is found in the comment
+            
+            cur.execute("SELECT date, search FROM searches")
+            comments_data = cur.fetchall()
+
+            # Load negative/hate speech terms from a text file
+            with open('negative_words.txt', 'r') as file:
+                negative_words = file.read().splitlines()
+
+            # Iterate through comments to detect negative/hate speech
+            for date, comment_text in comments_data:
+                for word in negative_words:
+                    if word in comment_text:
+                        # Save detected comments to the 'menaces' table
+                        cur.execute("INSERT INTO menaces (table_name, date, comment) VALUES (%s, %s, %s)",
+                                    ('search', date, comment_text))
+                        mysql.connection.commit()
+                        break  # Break once a negative word is found in the comment
+            
+            cur.execute("SELECT date, post_content FROM posts")
+            comments_data = cur.fetchall()
+
+            # Load negative/hate speech terms from a text file
+            with open('negative_words.txt', 'r') as file:
+                negative_words = file.read().splitlines()
+
+            # Iterate through comments to detect negative/hate speech
+            for date, comment_text in comments_data:
+                for word in negative_words:
+                    if word in comment_text:
+                        # Save detected comments to the 'menaces' table
+                        cur.execute("INSERT INTO menaces (table_name, date, comment) VALUES (%s, %s, %s)",
+                                    ('post', date, comment_text))
+                        mysql.connection.commit()
+                        break  # Break once a negative word is found in the comment
+    return render_template('pourcentage.html',similarity_percentage=percentage) 
+
+@app.route('/pourcentage1')
+def pourcentage1():
+    file_path_facebook = 'twitter.txt'
+    file_path_ideal = 'Ideal1.txt'
+
+    # Read the contents of the files
+    facebook_content = read_file(file_path_facebook)
+    ideal_content = read_file(file_path_ideal)
+
+    # Calculate the similarity percentage
+    percentage = calculate_similarity_percentage(facebook_content, ideal_content)
+
+    # Read the content of the password_strength file
+    with open('password_strength.txt', 'r') as file:
+        password_strength_content = file.read()
+
+    # Update the percentage based on the content of password_strength
+    if 'Weak' in password_strength_content:
+        percentage += 3
+    elif 'Medium' in password_strength_content:
+        percentage += 5
+    elif 'Strong' in password_strength_content:
+        percentage += 10
+    
+    return render_template('pourcentage1.html',similarity_percentage=percentage) 
 if __name__ == '__main__':
     app.run(debug=True)

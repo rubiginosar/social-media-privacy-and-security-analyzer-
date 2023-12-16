@@ -17,11 +17,15 @@ html,body{
    background-color: aliceblue;
 }
 
+
+
 .wrapper {
     display: inline-flex;
     list-style:none;
     margin-top: -220px;
-}
+} 
+
+
 .wrapper i{
     font-size: 25px;
 }
@@ -44,6 +48,7 @@ html,body{
     box-shadow: 5px 10px 10px rgba(0,0,0,0.1);
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    margin-top: -420px;
 }
 .wrapper .name{
 
@@ -94,7 +99,7 @@ html,body{
     background-color: #1da1fa;
     color: #ffffff;
 }
-.wrapper .insta:hover,
+/* .wrapper .insta:hover,
 .wrapper .insta:hover .name,
 .wrapper .insta:hover .name::before{
     background-color: #d624d6;
@@ -104,4 +109,11 @@ html,body{
     #fd5949 45%,
     #d624d6 60%,
     #285aeb 90%);
+} */
+
+.wrapper button {
+    border: none;
+    background: none;
+    padding: 0; /* Remove padding if necessary */
+    /* Add any additional styling as needed */
 }

@@ -41,8 +41,8 @@ def verify_password(input_password, hashed_password):
     return bcrypt.checkpw(input_password.encode('utf-8'), hashed_password)
 
 # Example of hashing a password before storing it in the database
-password = "user_password"
-hashed_password = hash_password(password)
+# password = "user_password"
+# hashed_password = hash_password(password)
 
 def login_is_valid(username_or_email, password):
     # This is where you would perform your actual validation logic
@@ -80,7 +80,7 @@ def registration():
                 # Password matches, log the user in
                 user_id = user[0]  # Assuming user_id is in the first position
                 session['user'] = {'email': email, 'user_id': user_id}
-                return render_template('chose.html')  # Redirect to the dashboard after successful login
+                return render_template('Login.html')  # Redirect to the dashboard after successful login
 
         # Invalid credentials or user does not exist
             else:
@@ -143,11 +143,99 @@ def options():
 
 @app.route('/Login')
 def Login():
-    return render_template('Login.html') 
+    return render_template('chose.html') 
 
-@app.route('/Login1')
-def Login1():
-    return render_template('Login1.html') 
+# @app.route('/dashboard/<platform>')
+# def dashboard(platform):
+#     if platform == 'Facebook':
+#         return render_template('dashboradfb.html')
+#     elif platform == 'Twitter':
+#         return render_template('dashboardtw.html')
+#     else:
+#         # Handle cases where an invalid platform is requested
+#         return "Invalid platform requested"
+
+@app.route('/dashboard1')
+def dashboard1():
+    cur = mysql.connection.cursor()
+    email = session['user']['email']
+    cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+    user_id = cur.fetchone()[0]
+    
+    facebook_menaces_query = """
+    SELECT date, comment, table_name
+    FROM projet.menaces
+    WHERE table_name IN ('comments', 'likes', 'post', 'tag', 'search')
+    AND user_id = %s
+    ORDER BY date DESC
+    LIMIT 15
+    """
+    cur.execute(facebook_menaces_query, (user_id,))
+    latest_facebook_menaces = cur.fetchall()
+
+
+    logins_query = """
+    SELECT DISTINCT date, login_action
+    FROM projet.logins
+    WHERE user_id = %s
+    LIMIT 20
+"""
+    cur.execute(logins_query, (user_id,))
+    unique_logins = cur.fetchall()
+
+    devices_query = """
+    SELECT DISTINCT date, device
+    FROM projet.devices
+    WHERE user_id = %s
+    LIMIT 20
+"""
+    cur.execute(devices_query, (user_id,))
+    unique_devices = cur.fetchall()
+    
+    return render_template('dashboradfb.html', latest_facebook_menaces=latest_facebook_menaces, unique_logins=unique_logins, unique_devices=unique_devices)
+
+
+@app.route('/dashboard2')
+def dashboard2():
+    cur = mysql.connection.cursor()
+    email = session['user']['email']
+    cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+    user_id = cur.fetchone()[0]
+    query = """
+        SELECT
+        device,
+        date,
+        location
+        FROM
+        projet.twt_sessions
+        WHERE
+        user_id = %s
+        ORDER BY
+        date DESC
+        LIMIT
+        15
+    """
+
+    cur.execute(query, (user_id,))
+    latest_sessions = cur.fetchall()
+    tweet_menaces_query = """
+    SELECT date, comment
+    FROM projet.menaces
+    WHERE table_name = 'tweet'
+    AND
+    user_id = %s
+    ORDER BY
+    date DESC
+    LIMIT
+    15
+"""
+    cur.execute(tweet_menaces_query,(user_id,))
+    latest_tweet_menaces = cur.fetchall()
+
+    return render_template('dashboardtw.html',latest_sessions=latest_sessions,latest_tweet_menaces=latest_tweet_menaces) 
+# @app.route('/Login1')
+# def Login1():
+#     return render_template('Login1.html') 
 
 
 # @app.route('/chose')
@@ -167,6 +255,19 @@ def chose():
                 return redirect('/analyze1')
 
     return render_template('chose.html')
+
+@app.route('/dashboard', methods=['GET', 'POST'])
+def dashboard():
+    if request.method == 'POST':
+        if 'platform' in request.form:
+            platform = request.form['platform']
+
+            if platform == 'Facebook':
+                return redirect('/dashboard1')
+            elif platform == 'Twitter':
+                return redirect('/dashboard2')
+
+    return render_template('dashboard.html')
 
 @app.route('/password')
 def password():
@@ -520,12 +621,12 @@ def analyze_facebook():
         with open('prim_location.txt', 'w') as file:
             file.write(last_element + '\n')
             print(f"Extracted text '{last_element}' written to logged.txt")
-        cur = mysql.connection.cursor()
-        email = session['user']['email']
-        cur.execute("SELECT id FROM users WHERE email = %s", (email,))
-        user_id = cur.fetchone()[0]
-        cur.execute("INSERT INTO prim_location (user_id, location) VALUES (%s, %s)", (user_id,last_element,))
-        mysql.connection.commit()
+        # cur = mysql.connection.cursor()
+        # email = session['user']['email']
+        # cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+        # user_id = cur.fetchone()[0]
+        # cur.execute("INSERT INTO prim_location (user_id, location) VALUES (%s, %s)", (user_id,{last_element},))
+        # mysql.connection.commit()
         time.sleep(5)
         #logged in
         driver.get('https://www.facebook.com/100060663511589/allactivity?category_key=ACTIVESESSIONS&entry_point=ayi_hub')
@@ -1156,8 +1257,11 @@ def pourcentage():
     def check_comments_for_menaces():
         # Establish a database connection within the application context
         with app.app_context():
-            cur = mysql.connection.cursor()
-            cur.execute("SELECT date, comment FROM comments")
+            cur=mysql.connection.cursor()
+            email = session['user']['email']
+            cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+            user_id = cur.fetchone()[0]
+            cur.execute("SELECT date, comment FROM comments WHERE user_id = %s",(user_id,))
             comments_data = cur.fetchall()
 
             # Load negative/hate speech terms from a text file
@@ -1169,12 +1273,12 @@ def pourcentage():
                 for word in negative_words:
                     if word in comment_text:
                         # Save detected comments to the 'menaces' table
-                        cur.execute("INSERT INTO menaces (table_name, date, comment) VALUES (%s, %s, %s)",
-                                    ('comments', date, comment_text))
+                        cur.execute("INSERT INTO menaces (user_id, table_name, date, comment) VALUES (%s, %s, %s, %s)",
+                                    (user_id,'comments', date, comment_text))
                         mysql.connection.commit()
                         break  # Break once a negative word is found in the comment
             
-            cur.execute("SELECT date, like_action FROM likes")
+            cur.execute("SELECT date, like_action FROM likes WHERE user_id = %s",(user_id,))
             comments_data = cur.fetchall()
 
             # Load negative/hate speech terms from a text file
@@ -1186,12 +1290,12 @@ def pourcentage():
                 for word in negative_words:
                     if word in comment_text:
                         # Save detected comments to the 'menaces' table
-                        cur.execute("INSERT INTO menaces (table_name, date, comment) VALUES (%s, %s, %s)",
-                                    ('likes', date, comment_text))
+                        cur.execute("INSERT INTO menaces (user_id, table_name, date, comment) VALUES (%s, %s, %s, %s)",
+                                    (user_id,'likes', date, comment_text))
                         mysql.connection.commit()
                         break  # Break once a negative word is found in the comment
             
-            cur.execute("SELECT date, tag_content FROM tags")
+            cur.execute("SELECT date, tag_content FROM tags WHERE user_id = %s",(user_id,))
             comments_data = cur.fetchall()
 
             # Load negative/hate speech terms from a text file
@@ -1203,12 +1307,12 @@ def pourcentage():
                 for word in negative_words:
                     if word in comment_text:
                         # Save detected comments to the 'menaces' table
-                        cur.execute("INSERT INTO menaces (table_name, date, comment) VALUES (%s, %s, %s)",
-                                    ('tag', date, comment_text))
+                        cur.execute("INSERT INTO menaces (user_id, table_name, date, comment) VALUES (%s, %s, %s, %s)",
+                                    (user_id,'tag', date, comment_text))
                         mysql.connection.commit()
                         break  # Break once a negative word is found in the comment
             
-            cur.execute("SELECT date, search FROM searches")
+            cur.execute("SELECT date, search FROM searches WHERE user_id = %s",(user_id,))
             comments_data = cur.fetchall()
 
             # Load negative/hate speech terms from a text file
@@ -1220,12 +1324,12 @@ def pourcentage():
                 for word in negative_words:
                     if word in comment_text:
                         # Save detected comments to the 'menaces' table
-                        cur.execute("INSERT INTO menaces (table_name, date, comment) VALUES (%s, %s, %s)",
-                                    ('search', date, comment_text))
+                        cur.execute("INSERT INTO menaces (user_id, table_name, date, comment) VALUES (%s, %s, %s, %s)",
+                                    (user_id, 'search', date, comment_text))
                         mysql.connection.commit()
                         break  # Break once a negative word is found in the comment
             
-            cur.execute("SELECT date, post_content FROM posts")
+            cur.execute("SELECT date, post_content FROM posts WHERE user_id = %s",(user_id,))
             comments_data = cur.fetchall()
 
             # Load negative/hate speech terms from a text file
@@ -1237,10 +1341,11 @@ def pourcentage():
                 for word in negative_words:
                     if word in comment_text:
                         # Save detected comments to the 'menaces' table
-                        cur.execute("INSERT INTO menaces (table_name, date, comment) VALUES (%s, %s, %s)",
-                                    ('post', date, comment_text))
+                        cur.execute("INSERT INTO menaces (user_id, table_name, date, comment) VALUES (%s, %s, %s, %s)",
+                                    (user_id,'post', date, comment_text))
                         mysql.connection.commit()
-                        break  # Break once a negative word is found in the comment
+                        break 
+    check_comments_for_menaces() # Break once a negative word is found in the comment
     return render_template('pourcentage.html',similarity_percentage=percentage) 
 
 @app.route('/pourcentage1')
@@ -1266,9 +1371,11 @@ def pourcentage1():
         percentage += 5
     elif 'Strong' in password_strength_content:
         percentage += 10
-
-    cur= mysql.connection.cursor()
-    cur.execute("SELECT * FROM tweets")
+    cur=mysql.connection.cursor()
+    email = session['user']['email']
+    cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+    user_id = cur.fetchone()[0]
+    cur.execute("SELECT * FROM tweets WHERE user_id = %s",(user_id,))
     comments_data = cur.fetchall()
 
             # Load negative/hate speech terms from a text file
@@ -1276,13 +1383,16 @@ def pourcentage1():
         negative_words = file.read().splitlines()
 
             # Iterate through comments to detect negative/hate speech
-        for date, comment_text in comments_data:
-                for word in negative_words:
-                    if word in comment_text:
-                        # Save detected comments to the 'menaces' table
-                        cur.execute("INSERT INTO menaces (table_name, date, comment) VALUES (%s, %s, %s)",
-                                    ('tweet', date, comment_text))
-                        mysql.connection.commit()
+        for row in comments_data:
+    # Access the columns by their index positions
+            date = row[4]  # Assuming date is the first column
+            comment_text = row[5]
+            for word in negative_words:
+                if word in comment_text:
+                    # Save detected comments to the 'menaces' table
+                    cur.execute("INSERT INTO menaces (user_id, table_name, date, comment) VALUES (%s,%s, %s, %s)",
+                                    (user_id,'tweet', date, comment_text))
+                    mysql.connection.commit()
 
     return render_template('pourcentage1.html',similarity_percentage=percentage) 
 

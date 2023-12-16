@@ -1,0 +1,24 @@
+True
+not checked
+checked: Anyone can tag you
+The checkbox is checked
+The checkbox is not checked
+The checkbox is not checked
+The checkbox is not checked
+The checkbox is checked
+The checkbox is checked
+The checkbox is checked
+The checkbox is checked
+The checkbox is checked
+The checkbox is checked
+The checkbox is checked
+The checkbox is checked
+checked: 1
+The checkbox is not checked
+True
+The checkbox is not checked
+The checkbox is not checked
+False
+The checkbox is checked
+The checkbox is checked
+The checkbox is checked

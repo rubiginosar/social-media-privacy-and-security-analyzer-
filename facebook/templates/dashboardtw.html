@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+    <head> 
+        <title>Dashboard tw</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style1.css') }}">
+        <link rel="stylesheet" href="/projet ssad/swiper-bundle.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    </head>
+    <body>
+        <nav id="nav">
+            <div class="navbar">
+                <div class="logo">
+                    <i class="fa-solid fa-unlock-keyhole"></i> SəcurityChəck 
+                </div>
+                <div class="links">
+                <a href="{{ url_for('Login') }}">OPTIONS</a>
+                <a href="{{ url_for('home') }}">LOG OUT</a>
+                </div>
+            </div>
+        </nav>   
+        <h1>Latest Sessions</h1>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Device</th>
+                    <th>Date</th>
+                    <th>Location</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in latest_sessions %}
+                    <tr>
+                        <td>{{ session[0] }}</td>
+                        <td>{{ session[1] }}</td>
+                        <td>{{ session[2] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div>
+        <h1>Your twitter interactions that might cause you a security problem</h1>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>tweet</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for menace in latest_tweet_menaces %}
+                    <tr>
+                        <td>{{ menace[0] }}</td>
+                        <td>{{ menace[1] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    </body>
+</html>

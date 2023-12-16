@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head> 
+        <title>Dashboard fb</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style1.css') }}">
+        <link rel="stylesheet" href="/projet ssad/swiper-bundle.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    </head>
+    <body>
+        <nav id="nav">
+            <div class="navbar">
+                <div class="logo">
+                    <i class="fa-solid fa-unlock-keyhole"></i> SəcurityChəck 
+                </div>
+                <div class="links">
+                <a href="{{ url_for('Login') }}">OPTIONS</a>
+                <a href="{{ url_for('home') }}">LOG OUT</a>
+                </div>
+            </div>
+        </nav>   
+        <div>
+            <h1>Your facebook interactions that might cause you a security problem</h1>
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Interaction</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for menace in latest_facebook_menaces %}
+                        <tr>
+                            <td>{{ menace[0] }}</td>
+                            <td>{{ menace[1] }}</td>
+                            <td>{{ menace[2] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <h1>Your latest Facebook login actions</h1>
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Login Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for login in unique_logins %}
+                        <tr>
+                            <td>{{ login[0] }}</td>
+                            <td>{{ login[1] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <h1>Your recognized devices</h1>
+            <table border="1">
+                <tr>
+                    <th>Date</th>
+                    <th>Device</th>
+                </tr>
+                {% for row in unique_devices %}
+                <tr>
+                    <td>{{ row.date }}</td>
+                    <td>{{ row.device }}</td>
+                </tr>
+                {% endfor %}
+    </table>
+        </div>
+    <body>
+</html>

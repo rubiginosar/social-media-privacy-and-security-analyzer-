@@ -1,0 +1,97 @@
+create database projet; (bdli le port 3ndk ta3i rani dayrato 3307) 
+    CREATE TABLE users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL
+        -- Add more columns as needed
+    );
+
+CREATE TABLE comments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT, -- Assuming user_id is a foreign key referencing another table's primary key
+    date TEXT,
+    comment TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE devices (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT, -- Assuming user_id is a foreign key referencing another table's primary key
+    date TEXT,
+    device TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE likes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT, -- Assuming user_id is a foreign key referencing another table's primary key
+    date TEXT,
+    like_action TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+
+CREATE TABLE logins (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT, -- Assuming user_id is a foreign key referencing another table's primary key
+    date TEXT,
+    login_action TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+
+CREATE TABLE posts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT, -- Assuming user_id is a foreign key referencing another table's primary key
+    date TEXT,
+    post_content TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+
+CREATE TABLE tags (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT, -- Assuming user_id is a foreign key referencing another table's primary key
+    date TEXT,
+    tag_content TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+
+CREATE TABLE searches (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT, -- Assuming user_id is a foreign key referencing another table's primary key
+    date TEXT,
+    search TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+
+CREATE TABLE twt_sessions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT, -- Assuming user_id is a foreign key referencing another table's primary key
+    date TEXT,
+    device TEXT,
+    location TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+
+CREATE TABLE tweets (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT, -- Assuming user_id is a foreign key referencing another table's primary key
+    name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    username VARCHAR(255),
+    postdate TEXT,
+    tweetText TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE menaces (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT, -- Assuming user_id is a foreign key referencing another table's primary key
+    table_name VARCHAR(255),
+    date TEXT,
+    comment TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
